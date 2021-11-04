@@ -7,7 +7,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 
-public class ChartApplication extends Application {
+public class UiInitializer extends Application {
     private ConfigurableApplicationContext applicationContext;
 
     @Override

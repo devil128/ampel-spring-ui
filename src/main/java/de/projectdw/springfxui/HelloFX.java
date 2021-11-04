@@ -1,5 +1,7 @@
 package de.projectdw.springfxui;
 
+import de.projectdw.springfxui.data.InputLogData;
+import de.projectdw.springfxui.data.NetworkPair;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -8,18 +10,23 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Service
 public class HelloFX {
+    private static NetworkManager networkManager;
 
 
     static String colorGood = "7FFF00";
@@ -28,12 +35,14 @@ public class HelloFX {
     static boolean wasOnline = false;
     static Logger logger = Logger.getLogger(HelloFX.class.getName());
     static String username = "";
+    static String place = "";
 
     public void start(Stage primaryStage) {
         var submitButton = NameUI.initUI(primaryStage);
         submitButton.setOnAction((actionEvent) -> {
             initUI(primaryStage);
-            username = NameUI.nameInput + NameUI.placeInput;
+            username = NameUI.nameInput;
+            place = NameUI.placeInput;
         });
     }
 
@@ -65,12 +74,11 @@ public class HelloFX {
         HBox hb = new HBox();
         hb.getChildren().addAll(label1, textField);
         hb.setSpacing(10);
-        Button auth = new Button("Authentificate");
-        Button start = new Button("Start");
         Button upload = new Button("Abgabe");
+        upload.setOnAction(actionEvent -> networkManager.uploadLogs());
         HBox buttons = new HBox();
         buttons.setSpacing(5);
-        buttons.getChildren().addAll(auth, start, upload);
+        buttons.getChildren().addAll(upload);
         grid.add(buttons, 0, 1);
 
         primaryStage.setScene(new Scene(grid, 300, 251));
@@ -79,38 +87,43 @@ public class HelloFX {
 
 
     public static void isValidCheck() {
-        var get = executeGet("ampel.projectdw.de", "");
+        InputLogData inputLogData = new InputLogData();
+        inputLogData.setName(username);
+        inputLogData.setPlace(place);
+        inputLogData.setTimestamp(System.currentTimeMillis() + "");
+
+        inputLogData.setNetworkInterfaces(getNetworkInterfaces());
+
+        var wasOnline = networkManager.tryToConnect(inputLogData);
         logger.info("Was online: " + wasOnline + " Timestamp of Check: " + new Date().toInstant().toEpochMilli() + " User: " + username);
-        wasOnline = get.startsWith("failed");
+
         rect.setBackground(new Background(new BackgroundFill(Color.web("#" + (wasOnline ? colorBad : colorGood)), CornerRadii.EMPTY, Insets.EMPTY)));
     }
 
-    public static String executeGet(String targetURL, String urlParameters) {
-        HttpURLConnection connection = null;
-
+    private static List<NetworkPair> getNetworkInterfaces() {
+        ArrayList<NetworkPair> res = new ArrayList<>();
         try {
-            //Create connection
-            StringBuilder result = new StringBuilder();
-
-            UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-            String urlString = builder.scheme("https").host(targetURL).path("/ping").query("name={keyword}").buildAndExpand(username).toString();
-            URL url = new URL(urlString);
-            System.out.println(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()))) {
-                for (String line; (line = reader.readLine()) != null; ) {
-                    result.append(line);
+            List<NetworkInterface> networkInterface = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface ni : networkInterface) {
+                NetworkPair networkPair = new NetworkPair();
+                networkPair.setNetwork(ni.getName());
+                networkPair.setOnline(false);
+                if (ni.isUp() && !ni.isLoopback()) {
+                    logger.info(ni.toString());
+                    networkPair.setOnline(true);
+                    res.add(networkPair);
                 }
             }
-            return result.toString();
-        } catch (Exception e) {
-            return "failed " + e.getMessage();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Exception: ", ex);
         }
+
+        return res;
+    }
+
+
+    @Autowired
+    public void setNetworkManager(NetworkManager networkManager) {
+        HelloFX.networkManager = networkManager;
     }
 }

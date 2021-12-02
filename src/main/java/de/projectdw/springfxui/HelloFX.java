@@ -66,7 +66,7 @@ public class HelloFX {
                 isValidCheck();
             }
         };
-        timer.scheduleAtFixedRate(task, 500, 1000);
+        timer.scheduleAtFixedRate(task, 100, 5000);
 
         // username label
         Label label1 = new Label("Name:");

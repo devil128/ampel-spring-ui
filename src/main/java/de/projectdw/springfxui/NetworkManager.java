@@ -1,5 +1,6 @@
 package de.projectdw.springfxui;
 
+import com.google.gson.Gson;
 import de.projectdw.springfxui.data.InputLogData;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -23,6 +27,11 @@ import java.util.List;
 public class NetworkManager {
     private static String url = "https://ampel.projectdw.de";
     private List<InputLogData> failedConnections = new ArrayList<>();
+
+    public NetworkManager() {
+        this.loadFromFile();
+
+    }
 
     public boolean tryToConnect(InputLogData logData) {
         try {
@@ -40,9 +49,11 @@ public class NetworkManager {
                     request,
                     String.class
             );
+            this.writeToFile();
             return true;
         } catch (Exception ex) {
             failedConnections.add(logData);
+            this.writeToFile();
             return false;
         }
     }
@@ -68,6 +79,26 @@ public class NetworkManager {
             return true;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    public void writeToFile() {
+        Gson gson = new Gson();
+        try(FileWriter fileWriter = new FileWriter("logs.json")) {
+            gson.toJson(failedConnections.toArray(), fileWriter);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadFromFile() {
+        Gson gson = new Gson();
+        try {
+            InputLogData[] data = gson.fromJson(new FileReader("logs.json"), InputLogData[].class);
+            if (data != null && data.length > 0)
+                failedConnections = new ArrayList<>(List.of(data));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

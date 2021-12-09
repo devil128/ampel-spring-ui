@@ -75,10 +75,20 @@ public class HelloFX {
         hb.getChildren().addAll(label1, textField);
         hb.setSpacing(10);
         Button upload = new Button("Abgabe");
-        upload.setOnAction(actionEvent -> networkManager.uploadLogs());
+
+        Label status = new Label();
+        upload.setOnAction(actionEvent -> {
+            if (networkManager.uploadLogs()) {
+                status.setText("Upload fertiggestellt");
+            } else {
+                status.setText("Upload fehlgeschlagen");
+            }
+        });
         HBox buttons = new HBox();
         buttons.setSpacing(5);
-        buttons.getChildren().addAll(upload);
+        buttons.getChildren().add(upload);
+        buttons.getChildren().add(status);
+
         grid.add(buttons, 0, 1);
 
         primaryStage.setScene(new Scene(grid, 300, 251));

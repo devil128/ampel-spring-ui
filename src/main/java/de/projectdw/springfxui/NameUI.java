@@ -7,6 +7,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+/**
+ * class to init name input UI
+ */
 public class NameUI {
     static String nameInput;
     static String placeInput;

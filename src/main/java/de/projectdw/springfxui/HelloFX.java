@@ -25,6 +25,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Service
+/**
+ * FX class to start the UI
+ */
 public class HelloFX {
     private static NetworkManager networkManager;
 
@@ -38,6 +41,7 @@ public class HelloFX {
     static String place = "";
 
     public void start(Stage primaryStage) {
+        // loads first the UI to input the name and place of the user
         var submitButton = NameUI.initUI(primaryStage);
         submitButton.setOnAction((actionEvent) -> {
             initUI(primaryStage);
@@ -47,6 +51,7 @@ public class HelloFX {
     }
 
     private static void initUI(Stage primaryStage) {
+        // basic UI setup and box
         primaryStage.setTitle("Connection Tester");
         GridPane grid = new GridPane();
 
@@ -95,7 +100,9 @@ public class HelloFX {
         primaryStage.show();
     }
 
-
+    /**
+     * tries to connect to URL activated regulary through TimerTask
+     */
     public static void isValidCheck() {
         InputLogData inputLogData = new InputLogData();
         inputLogData.setName(username);
@@ -110,6 +117,10 @@ public class HelloFX {
         rect.setBackground(new Background(new BackgroundFill(Color.web("#" + (wasOnline ? colorBad : colorGood)), CornerRadii.EMPTY, Insets.EMPTY)));
     }
 
+    /**
+     * lists network interfaces which are available for the client
+     * @return
+     */
     private static List<NetworkPair> getNetworkInterfaces() {
         ArrayList<NetworkPair> res = new ArrayList<>();
         try {

@@ -5,6 +5,7 @@ import de.projectdw.springfxui.data.InputLogData;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +25,11 @@ import java.util.List;
 
 @Service
 @Slf4j
+/**
+ * Service to connect to the Backend API
+ */
 public class NetworkManager {
+
     private static String url = "https://ampel.projectdw.de";
     private List<InputLogData> failedConnections = new ArrayList<>();
 

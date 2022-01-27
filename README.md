@@ -6,3 +6,6 @@ definiert in den application.properties. In einer logs.json werden alle nicht er
 
 ## Ausführen
 Ausführend ist über Intelji möglich mit dem Starten von der Class ``SpringFxUiApplication``
+
+## JAR Generation:
+mvn package -DskipTests 
